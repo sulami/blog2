@@ -29,7 +29,7 @@
          function retrievePage(page) {
              var req = new XMLHttpRequest(),
                  method = 'GET',
-                 url = 'file:///Users/robinschroer/' + page + '.md'; // TODO relative URL
+                 url = '/' + page + '.md';
              req.open(method, url, true);
              req.overrideMimeType('text/markdown');
              req.onreadystatechange = function () {
