@@ -1,5 +1,5 @@
 body {
-    margin: auto;
+    margin: auto 20px;
     max-width: 900px;
     text-align: justify;
 }
@@ -14,7 +14,6 @@ img {
 }
 
 pre {
-    /* background-color: #f0f0f0; */
     border: 1px #ccc solid;
     margin: 40px;
     max-width: calc(100% - 120px);
