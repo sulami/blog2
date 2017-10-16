@@ -44,6 +44,6 @@ function retrievePage(page) {
 
 function blargh() {
     var params = getQueryParams(document.location.search),
-        page   = params.page || "home",
-        text   = retrievePage(page);
+        page   = params.page || "home";
+    retrievePage(page);
 };
