@@ -1,5 +1,6 @@
 body {
-    margin: auto 20px;
+    margin: auto;
+    width: 90%;
     max-width: 900px;
     text-align: justify;
 }
