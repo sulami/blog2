@@ -1,9 +1,23 @@
 body {
     margin: auto;
-    max-width: 800px;
+    max-width: 900px;
     text-align: justify;
 }
 
 h1 {
     text-align: center;
+}
+
+img {
+    max-width: calc(100% - 80px);
+    padding: 40px;
+}
+
+pre {
+    /* background-color: #f0f0f0; */
+    border: 1px #ccc solid;
+    margin: 40px;
+    max-width: calc(100% - 120px);
+    overflow-x: scroll;
+    padding: 20px;
 }
