@@ -19,6 +19,32 @@ function createHTML(htmlStr) {
     return frag;
 };
 
+function titleCase(str) {
+    return str.replace(/-/g, ' ').replace(/\w\S*/g, function(txt) {
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    });
+};
+
+function retrieveIndex() {
+    var req = new XMLHttpRequest(),
+        method = 'GET',
+        url = 'https://api.github.com/repos/sulami/blog2/contents/content';
+    req.open(method, url, true);
+    req.overrideMimeType('application/json');
+    req.onreadystatechange = function () {
+        if (req.readyState != 4) {
+            return;
+        };
+        var json = JSON.parse(req.responseText);
+        json.map(function (file) {
+            var name = file.name.split('.')[0],
+                url  = file.download_url;
+            console.log(name + ': ' + url);
+        });
+    };
+    req.send();
+};
+
 function retrievePage(page) {
     var req = new XMLHttpRequest(),
         method = 'GET',
