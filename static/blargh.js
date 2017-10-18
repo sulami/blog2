@@ -1,8 +1,10 @@
+const urlRoot = '/blog2';
+
 function getQueryParams(qs) {
     qs = qs.split('+').join(' ');
+    const re = /[?&]?([^=]+)=([^&]*)/g;
     var params = {},
-        tokens,
-        re = /[?&]?([^=]+)=([^&]*)/g;
+        tokens;
     while ((tokens = re.exec(qs))) {
         params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
     };
@@ -19,57 +21,76 @@ function createHTML(htmlStr) {
     return frag;
 };
 
-function titleCase(str) {
-    return str.replace(/-/g, ' ').replace(/\w\S*/g, function(txt) {
-        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+function parseMarkdown(markdown) {
+    const converter = new showdown.Converter();
+    return converter.makeHtml(markdown);
+};
+
+function retrievePage(page) {
+    return new Promise((resolve, reject) => {
+        const req = new XMLHttpRequest(),
+            method = 'GET',
+            url = urlRoot + '/content/' + page + '.md';
+        req.open(method, url, true);
+        req.overrideMimeType('text/markdown');
+        req.onreadystatechange = function () {
+            if (req.readyState == 4) {
+                if (req.status != 200) {
+                    reject('Failed to retrieve post ' + page + ', returned ' + req.status);
+                };
+
+                resolve(parseMarkdown(req.responseText));
+            };
+        };
+        req.send();
     });
 };
 
 function retrieveIndex() {
-    var req = new XMLHttpRequest(),
-        method = 'GET',
-        url = 'https://api.github.com/repos/sulami/blog2/contents/content';
-    req.open(method, url, true);
-    req.overrideMimeType('application/json');
-    req.onreadystatechange = function () {
-        if (req.readyState != 4) {
-            return;
+    return new Promise((resolve, reject) => {
+        const req = new XMLHttpRequest(),
+              method = 'GET',
+              url = urlRoot + '/index';
+        req.open(method, url, true);
+        req.overrideMimeType('application/json');
+        req.onreadystatechange = function () {
+            if (req.readyState == 4) {
+                var list = req.responseText.split('\n').reverse(),
+                    requests = list.map(a => retrievePage(a));
+                Promise.all(requests).then(resolvedPromises => {
+                    resolve(resolvedPromises);
+                }).catch(reason => {
+                    reject(reason);
+                });
+            };
         };
-        var json = JSON.parse(req.responseText);
-        json.map(function (file) {
-            var name = file.name.split('.')[0],
-                url  = file.download_url;
-            console.log(name + ': ' + url);
-        });
-    };
-    req.send();
+        req.send();
+    });
 };
 
-function retrievePage(page) {
-    var req = new XMLHttpRequest(),
-        method = 'GET',
-        url = '/blog2/' + page + '.md';
-    req.open(method, url, true);
-    req.overrideMimeType('text/markdown');
-    req.onreadystatechange = function () {
-        if (req.readyState != 4) {
-            return;
-        };
-
-        var converter = new showdown.Converter(),
-            html = converter.makeHtml(req.responseText);
-
-        if (req.status != 200) {
-            html = "<p>I am error<p>";
-        };
-
-        document.body.insertBefore(createHTML(html), document.body.childNodes[0]);
-    };
-    req.send();
+function insertPost(html) {
+    document.body.insertBefore(createHTML(html), document.body.childNodes[0]);
 };
 
 function blargh() {
-    var params = getQueryParams(document.location.search),
-        page   = params.page || "home";
-    retrievePage(page);
+    const params = getQueryParams(document.location.search),
+          page = params.page || "index";
+    const pageLoad = new Promise((resolve, reject) => {
+        if (page == 'index') {
+            retrieveIndex().then(resolvedPromises => {
+                resolvedPromises.map(insertPost);
+            }).catch(reason => {
+                reject(reason);
+            });
+        } else {
+            retrievePage(page).then(result => {
+                insertPost(result);
+            }).catch(reason => {
+                reject(reason);
+            });
+        };
+    });
+    pageLoad.catch(reason => {
+        console.log(reason);
+    });
 };
