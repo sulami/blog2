@@ -1,15 +1,16 @@
 const urlRoot = '/blog2';
 
-function getQueryParams(qs) {
-    qs = qs.split('+').join(' ');
-    const re = /[?&]?([^=]+)=([^&]*)/g;
-    var params = {},
-        tokens;
-    while ((tokens = re.exec(qs))) {
-        params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
-    };
-    return params;
-};
+function getQueryParams(url) {
+    return url
+        .slice(url.indexOf('?') + 1)
+        .split('&')
+        .map(param => param.split('='))
+        .reduce((prev, curr) => {
+            prev[curr[0]] = decodeURIComponent(curr[1]);
+
+            return prev;
+        }, {});
+}
 
 function createHTML(htmlStr) {
     var frag = document.createDocumentFragment(),
